@@ -32,3 +32,22 @@ pub fn takusakuw(p: Vec3) -> f32 {
     (sin.zxy() - cos.zzx()).length() - 0.5
 }
 
+pub fn spherepyramid(mut p: Vec3) -> f32 {
+    let mut s: f32 = 2.;
+    for _ in 0..8 {
+        let xz: Vec2 = 0.8 - p.xz().abs();
+        p.x = xz.x;
+        p.z = xz.y;
+
+        if p.x < p.z {
+            p = p.zyx();
+        }
+
+        let e: f32 = 2.1 / f32::min(p.dot(p), 1.);
+        s *= e;
+        p = p.abs() * e - Vec3::new(1., 18., 9.);
+    }
+
+    p.length() / s - 0.01
+}
+

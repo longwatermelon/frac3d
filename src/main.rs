@@ -6,7 +6,7 @@ use std::thread;
 use std::sync::mpsc::{self, Sender};
 
 const SCRSIZE: usize = 500;
-const MAX_STEPS: usize = 50;
+const MAX_STEPS: usize = 200;
 
 fn trace(from: Vec3, dir: Vec3, de: impl Fn(Vec3) -> f32) -> f32 {
     let mut distance: f32 = 0.;
@@ -18,7 +18,7 @@ fn trace(from: Vec3, dir: Vec3, de: impl Fn(Vec3) -> f32) -> f32 {
         let dist: f32 = de(p);
         distance += dist;
 
-        if dist < 0.001 {
+        if dist < 0.0001 {
             break;
         }
     }
@@ -31,8 +31,8 @@ fn render_area(ray_orig: Vec3, x0: usize, y0: usize, x1: usize, y1: usize, sende
 
     for y in y0..y1 {
         for x in x0..x1 {
-            let ha: f32 = x as f32 / SCRSIZE as f32 - 0.4;
-            let va: f32 = y as f32 / SCRSIZE as f32 - 0.2;
+            let ha: f32 = x as f32 / SCRSIZE as f32 - 0.5;
+            let va: f32 = y as f32 / SCRSIZE as f32 - 0.5;
             let px: f32 = f32::sin(ha);
             let py: f32 = f32::sin(va);
 
@@ -40,7 +40,7 @@ fn render_area(ray_orig: Vec3, x0: usize, y0: usize, x1: usize, y1: usize, sende
             let y = y - y0;
 
             let dir: Vec3 = Vec3::new(px, py, 1.).normalize();
-            let color: f32 = trace(ray_orig, dir, distance::takusakuw);
+            let color: f32 = trace(ray_orig, dir, distance::spherepyramid);
             frame[y * (x1 - x0) + x] = Vec3::new(color, color, color);
         }
 
@@ -51,7 +51,7 @@ fn render_area(ray_orig: Vec3, x0: usize, y0: usize, x1: usize, y1: usize, sende
 }
 
 fn main() {
-    let orig: Vec3 = Vec3::new(2., -2., -4.5);
+    let orig: Vec3 = Vec3::new(0., 0., -4.);
 
     let (send, recv) = mpsc::channel();
 
