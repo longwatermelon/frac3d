@@ -5,7 +5,7 @@ use std::io::Write;
 use std::thread;
 use std::sync::mpsc::{self, Sender};
 
-const SCRSIZE: usize = 500;
+const SCRSIZE: usize = 2000;
 const MAX_STEPS: usize = 200;
 
 fn trace(from: Vec3, dir: Vec3, de: impl Fn(Vec3) -> f32) -> f32 {
@@ -18,7 +18,7 @@ fn trace(from: Vec3, dir: Vec3, de: impl Fn(Vec3) -> f32) -> f32 {
         let dist: f32 = de(p);
         distance += dist;
 
-        if dist < 0.0001 {
+        if dist < 0.00001 {
             break;
         }
     }
@@ -31,7 +31,7 @@ fn render_area(ray_orig: Vec3, x0: usize, y0: usize, x1: usize, y1: usize, sende
 
     for y in y0..y1 {
         for x in x0..x1 {
-            let ha: f32 = x as f32 / SCRSIZE as f32 - 0.5;
+            let ha: f32 = x as f32 / SCRSIZE as f32 - 0.1;
             let va: f32 = y as f32 / SCRSIZE as f32 - 0.5;
             let px: f32 = f32::sin(ha);
             let py: f32 = f32::sin(va);
@@ -40,8 +40,8 @@ fn render_area(ray_orig: Vec3, x0: usize, y0: usize, x1: usize, y1: usize, sende
             let y = y - y0;
 
             let dir: Vec3 = Vec3::new(px, py, 1.).normalize();
-            let color: f32 = trace(ray_orig, dir, distance::spherepyramid);
-            frame[y * (x1 - x0) + x] = Vec3::new(color, color, color);
+            let color: f32 = trace(ray_orig, dir, distance::pillars);
+            frame[y * (x1 - x0) + x] = Vec3::new(color, color * 0.8, color * 0.8);
         }
 
         sender.send(x1 - x0).unwrap();
@@ -51,7 +51,7 @@ fn render_area(ray_orig: Vec3, x0: usize, y0: usize, x1: usize, y1: usize, sende
 }
 
 fn main() {
-    let orig: Vec3 = Vec3::new(0., 0., -4.);
+    let orig: Vec3 = Vec3::new(0., 0., 0.);
 
     let (send, recv) = mpsc::channel();
 
@@ -63,7 +63,6 @@ fn main() {
     let topright = thread::spawn(move || render_area(orig, SCRSIZE / 2, 0, SCRSIZE, SCRSIZE / 2, sendtr));
     let bottomleft = thread::spawn(move || render_area(orig, 0, SCRSIZE / 2, SCRSIZE / 2, SCRSIZE, sendbl));
     let bottomright = thread::spawn(move || render_area(orig, SCRSIZE / 2, SCRSIZE / 2, SCRSIZE, SCRSIZE, sendbr));
-    println!("Waiting for threads to finish...");
 
     let mut total_pixels: usize = 0;
     loop {
@@ -108,7 +107,5 @@ fn main() {
 
     std::fs::write("out/out.ppm", out).unwrap();
     println!("Done");
-
-    std::process::Command::new("feh").arg("out/out.ppm").output().unwrap();
 }
 

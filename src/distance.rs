@@ -51,3 +51,19 @@ pub fn spherepyramid(mut p: Vec3) -> f32 {
     p.length() / s - 0.01
 }
 
+pub fn pillars(mut p: Vec3) -> f32 {
+    let xz: Vec2 = p.xz().fract() - 0.5;
+    p.x = xz.x;
+    p.z = xz.y;
+
+    let mut k: f32 = 1.;
+
+    for _ in 0..10 {
+        let s: f32 = 2. / f32::clamp(p.dot(p), 0.1, 1.);
+        p = p.abs() * s - Vec3::new(0.5, 3., 0.5);
+        k *= s;
+    }
+
+    p.length() / k - 0.001
+}
+
